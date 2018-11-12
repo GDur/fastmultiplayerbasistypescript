@@ -15,9 +15,9 @@
   "description": "TypeScript app with parcel bundler.",
   "main": "lib/parcel-typescript-example.js",
   "scripts": {
-    "start": "parcel serve src/index.html",
-    "build": "cross-env NODE_ENV=production parcel build src/index.html --public-url .",
-    "watch": "parcel watch src/index.html",
+    "start": "parcel serve src/index.pug",
+    "build": "cross-env NODE_ENV=production parcel build src/index.pug --public-url .",
+    "watch": "parcel watch src/index.pug",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
   },
@@ -30,14 +30,16 @@
   },
   "homepage": "https://azu.github.io/parcel-typescript-example/",
   "devDependencies": {
-    "cross-env": "^5.2.0",
-    "gh-pages": "^1.2.0",
-    "parcel-bundler": "^1.9.7",
-    "typescript": "^2.9.2",
     "@types/express": "^4.16.0",
     "@types/morgan": "^1.7.35",
     "@types/socket.io": "^2.1.0",
-    "@types/socket.io-client": "^1.4.32"
+    "@types/socket.io-client": "^1.4.32",
+    "cross-env": "^5.2.0",
+    "gh-pages": "^1.2.0",
+    "node-sass": "^4.10.0",
+    "parcel-bundler": "^1.9.7",
+    "pug": "^2.0.3",
+    "typescript": "^2.9.2"
   },
   "dependencies": {
     "express": "^4.16.4",

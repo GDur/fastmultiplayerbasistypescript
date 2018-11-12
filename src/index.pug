@@ -1,0 +1,67 @@
+doctype html
+head
+  meta(charset='UTF-8')
+  title parcel app
+  link(rel='stylesheet' href='./style.scss')
+.main
+  .nav
+  header
+    h1.title Fast-Paced Multiplayer: Sample Code and Live Demo
+  style.
+  p
+    | This is a sample implementation of a client-server architecture demonstrating the main concepts
+    | explained in
+    | my ast-Paced Multiplayer series of articles. It won&rsquo;t
+    | make much sense unless you&rsquo;ve read the articles first.
+  p
+    | The code is pure JavaScript and it&rsquo;s fully contained in this page. It&rsquo;s less than 500 lines of code,
+    | including a lot of comments, showing that once you really understand the concepts, implementing them is
+    | relatively straightforward.
+  p
+    | Although it&rsquo;s not production-quality code, you may use this code in your own applications. Credit is
+    | appreciated although not required.
+  div(style='border: 5px solid blue; padding: 15px;')
+    p
+      b Player 1 view
+      |  - move with LEFT and RIGHT arrow keys
+      br
+      |                 Lag = 
+      input#player1_lag(type='text' size='5' value='250')
+      |                 ms &middot; 
+      input#player1_prediction(type='checkbox')
+      |                 Prediction &middot; 
+      input#player1_reconciliation(type='checkbox')
+      |                 Reconciliation &middot; 
+      input#player1_interpolation(type='checkbox')
+      | Interpolation
+    canvas#player1_canvas(width='920' height='75')
+    #player1_status(style='font-family:courier;') Non-acknowledged inputs: 0
+  div(style='height: 1em;')
+  div(style='border: 2px solid grey; padding: 15px;')
+    p
+      b Server view
+      |  &middot; Update 
+      input#server_fps(type='text' size='5' value='3')
+      |  times per second
+    canvas#server_canvas(width='920' height='75')
+    #server_status(style='font-family:courier;')
+      | Last acknowledged input: Player 0: #1566 Player 1:
+      | #132
+  div(style='height: 1em;')
+  div(style='border: 5px solid red; padding: 15px;')
+    p
+      b Player 2 view
+      |  - move with A and D keys
+      br
+      |                 Lag = 
+      input#player2_lag(type='text' size='5' value='150')
+      |                 ms &middot; 
+      input#player2_prediction(type='checkbox')
+      |                 Prediction &middot; 
+      input#player2_reconciliation(type='checkbox')
+      |                 Reconciliation &middot; 
+      input#player2_interpolation(type='checkbox')
+      | Interpolation
+    canvas#player2_canvas(width='920' height='75')
+    #player2_status(style='font-family:courier;') Non-acknowledged inputs: 0
+script(src='./index.ts')
