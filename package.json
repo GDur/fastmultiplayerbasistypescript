@@ -1,0 +1,48 @@
+{
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "author": "azu",
+  "license": "MIT",
+  "files": [
+    "bin/",
+    "lib/",
+    "src/"
+  ],
+  "name": "parcel-typescript-example",
+  "version": "1.0.0",
+  "description": "TypeScript app with parcel bundler.",
+  "main": "lib/parcel-typescript-example.js",
+  "scripts": {
+    "start": "parcel serve src/index.html",
+    "build": "cross-env NODE_ENV=production parcel build src/index.html --public-url .",
+    "watch": "parcel watch src/index.html",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/azu/parcel-typescript-example.git"
+  },
+  "bugs": {
+    "url": "https://github.com/azu/parcel-typescript-example/issues"
+  },
+  "homepage": "https://azu.github.io/parcel-typescript-example/",
+  "devDependencies": {
+    "cross-env": "^5.2.0",
+    "gh-pages": "^1.2.0",
+    "parcel-bundler": "^1.9.7",
+    "typescript": "^2.9.2",
+    "@types/express": "^4.16.0",
+    "@types/morgan": "^1.7.35",
+    "@types/socket.io": "^2.1.0",
+    "@types/socket.io-client": "^1.4.32"
+  },
+  "dependencies": {
+    "express": "^4.16.4",
+    "morgan": "^1.9.1",
+    "socket.io": "^2.1.1",
+    "socket.io-client": "^2.1.1"
+  }
+}
