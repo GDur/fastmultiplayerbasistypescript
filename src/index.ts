@@ -1,11 +1,6 @@
-
-// import { InputContainer } from "./GameEngine/helper/helper";
-
 import Server from './GameEngine/Server'
-import Entity from "./GameEngine/Entity";
-import Client from "./GameEngine/Client";
-
-
+import Entity from "./GameEngine/Entity"
+import Client from "./GameEngine/Client"
 
 // =============================================================================
 //  Helpers.
