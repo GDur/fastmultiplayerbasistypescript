@@ -2,13 +2,13 @@ import Entity from './Entity'
 import LagNetwork from './LagNetwork'
 import Server from './Server'
 
-import { InputContainer , WorldState } from "./helper/helper";
+import { InputMessage, WorldStateMessage, TimestampedPosition } from "./helper/helper";
 // =============================================================================
 //  The Client.
 // =============================================================================
 export default class Client {
     canvas: HTMLCanvasElement;
-    status: HTMLElement;
+    statusHTMLElement: HTMLElement;
 
 
     // Local representation of the entities.
@@ -30,30 +30,29 @@ export default class Client {
     client_side_prediction = false;
     server_reconciliation = false;
     input_sequence_number = 0;
-    pending_inputs: InputContainer[] = [];
+    pending_inputs: InputMessage[] = [];
 
-    last_ts = 0
+    lastTs = 0
 
     // Entity interpolation toggle.
     entity_interpolation = true;
 
 
-    update_interval: number;
+    updateInterval: number;
 
-    renderWorld:Function
+    renderWorld: Function
 
-    constructor(canvas: HTMLElement, status: HTMLElement, server: Server, renderWorld:Function) {
-        this.renderWorld  = renderWorld
+    constructor(canvas: HTMLElement, statusElement: HTMLElement, server: Server, renderWorld: Function) {
+        this.renderWorld = renderWorld
         this.server = server
 
         // UI.
         this.canvas = canvas as HTMLCanvasElement;
-        this.status = status;
+        this.statusHTMLElement = statusElement;
+
 
         // Update rate.
-        this.update_interval = -1;
-
-
+        this.updateInterval = 0
         this.setUpdateRate(50);
     }
 
@@ -62,16 +61,15 @@ export default class Client {
     }
 
     setUpdateRate(hz: number) {
+        const self = this
 
-        if (this.update_interval)
-            clearInterval(this.update_interval);
+        clearInterval(this.updateInterval);
 
-        this.last_ts = +new Date();
-        this.update_interval = window.setInterval(
-            ((self => () => {
-                self.update();
-            }))(this),
-            1000 / hz);
+        this.lastTs = +new Date();
+
+        this.updateInterval = window.setInterval(() => {
+            self.update();
+        }, 1000 / hz);
     }
 
     // Update Client state.
@@ -96,21 +94,21 @@ export default class Client {
 
         // Show some info.
         const info = `Non-acknowledged inputs: ${this.pending_inputs.length}`;
-        this.status.textContent = info;
+        this.statusHTMLElement.textContent = info;
     }
 
     // Get inputs and send them to the server.
     // If enabled, do client-side prediction.
     processInputs() {
+
         // Compute delta time since last update.
         const now_ts = +new Date();
-        const last_ts = this.last_ts || now_ts;
+        const last_ts = this.lastTs || now_ts;
         const dt_sec = (now_ts - last_ts) / 1000.0;
-        this.last_ts = now_ts;
+        this.lastTs = now_ts;
 
         // Package player's input.
-        let input = new InputContainer(-1, -1, -1)
-
+        let input = new InputMessage(-1, -1, -1)
 
         if (this.key_right) {
             input.press_time = dt_sec;
@@ -140,13 +138,14 @@ export default class Client {
     // If enabled, do server reconciliation.
     processServerMessages() {
         while (true) {
-            const message = this.network.receive() as WorldState[];
-            if (!message) {
+            const messages = this.network.receive() as WorldStateMessage[];
+            if (!messages) {
                 break;
             }
 
             // World state is a list of entity states.
-            for (const state of message) {
+            for (const state of messages) {
+
                 // If this is the first time we see this entity, create a local representation.
                 if (!this.entities[state.entityId]) {
                     var entity = new Entity(state.entityId);
@@ -156,12 +155,15 @@ export default class Client {
 
                 var entity = this.entities[state.entityId];
 
+                // is the entity itself?
                 if (state.entityId == this.entityId) {
+
                     // Received the authoritative position of this client's entity.
-                    entity.x = state.position;
+                    entity.x = state.positionX;
 
                     if (this.server_reconciliation) {
-                        // Server Reconciliation. Re-apply all the inputs not yet processed by
+                        // Server Reconciliation. 
+                        // Re-apply all the inputs not yet processed by
                         // the server.
                         let j = 0;
                         while (j < this.pending_inputs.length) {
@@ -181,15 +183,16 @@ export default class Client {
                         this.pending_inputs = [];
                     }
                 } else {
-                    // Received the position of an entity other than this client's.
 
+                    // Received the position of an entity other than this client's.
                     if (!this.entity_interpolation) {
+
                         // Entity interpolation is disabled - just accept the server's position.
-                        entity.x = state.position;
+                        entity.x = state.positionX;
                     } else {
                         // Add it to the position buffer.
                         const timestamp = +new Date();
-                        entity.position_buffer.push([timestamp, state.position]);
+                        entity.positionBuffer.push(new TimestampedPosition(timestamp, state.positionX));
                     }
                 }
             }
@@ -199,7 +202,7 @@ export default class Client {
     interpolateEntities() {
         // Compute render timestamp.
         const now = +new Date();
-        const render_timestamp = now - (1000.0 / this.server.getUpdateRate());
+        const renderTimestamp = now - (1000.0 / this.server.getUpdateRate());
 
         for (const i in this.entities) {
             const entity = this.entities[i];
@@ -210,21 +213,28 @@ export default class Client {
             }
 
             // Find the two authoritative positions surrounding the rendering timestamp.
-            const buffer = entity.position_buffer;
+            const buffer = entity.positionBuffer;
 
             // Drop older positions.
-            while (buffer.length >= 2 && buffer[1][0] <= render_timestamp) {
+            while (
+                buffer.length >= 2
+                && buffer[1].timestamp <= renderTimestamp
+            ) {
                 buffer.shift();
             }
 
             // Interpolate between the two surrounding authoritative positions.
-            if (buffer.length >= 2 && buffer[0][0] <= render_timestamp && render_timestamp <= buffer[1][0]) {
-                const x0 = buffer[0][1];
-                const x1 = buffer[1][1];
-                const t0 = buffer[0][0];
-                const t1 = buffer[1][0];
+            if (buffer.length >= 2
+                && buffer[0].timestamp <= renderTimestamp
+                && renderTimestamp <= buffer[1].timestamp) {
+                const x0 = buffer[0].position;
+                const x1 = buffer[1].position;
+                const t0 = buffer[0].timestamp;
+                const t1 = buffer[1].timestamp;
 
-                entity.x = x0 + (x1 - x0) * (render_timestamp - t0) / (t1 - t0);
+                const deltaMovementX = (x1 - x0)
+                
+                entity.x = x0 + deltaMovementX * (renderTimestamp - t0) / (t1 - t0);
             }
         }
     }

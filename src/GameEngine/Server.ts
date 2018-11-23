@@ -3,7 +3,7 @@ import Entity from './Entity'
 import LagNetwork from './LagNetwork'
 import Client from './Client'
 
-import { InputContainer, WorldState } from "./helper/helper";
+import { InputMessage, WorldStateMessage } from "./helper/helper";
 
 // =============================================================================
 //  The Server.
@@ -22,15 +22,17 @@ export default class Server {
     canvas: HTMLCanvasElement;
     status: HTMLElement;
     updateRate = 0
-    update_interval: number
+    updateInterval: number
     renderWorld: Function
 
     constructor(canvas: HTMLElement, status: HTMLElement, renderWorld: Function) {
         this.renderWorld = renderWorld
+
         // UI.
         this.canvas = canvas as HTMLCanvasElement;
         this.status = status;
-        this.update_interval = 0
+        this.updateInterval = 0
+        
         // Default updte rate.
         this.setUpdateRate(20);
     }
@@ -61,9 +63,9 @@ export default class Server {
 
         this.updateRate = hz;
 
-        clearInterval(this.update_interval);
+        clearInterval(this.updateInterval);
 
-        this.update_interval = window.setInterval(() => {
+        this.updateInterval = window.setInterval(() => {
             self.update();
         }, 1000 / this.updateRate);
     }
@@ -76,7 +78,7 @@ export default class Server {
 
     // Check whether this input seems to be valid (e.g. "make sense" according
     // to the physical rules of the World)
-    validateInput(input: InputContainer) {
+    validateInput(input: InputMessage) {
         if (Math.abs(input.press_time) > 1 / 40) {
             return false;
         }
@@ -86,7 +88,7 @@ export default class Server {
     processInputs() {
         // Process all pending messages from clients.
         while (true) {
-            const message = this.network.receive() as InputContainer;
+            const message = this.network.receive() as InputMessage;
             if (!message) {
                 break;
             }
@@ -97,6 +99,8 @@ export default class Server {
             if (this.validateInput(message)) {
                 const id = message.entityId;
                 this.entities[id].applyInput(message);
+
+                // remember last input sequence number for client because?
                 this.last_processed_input[id] = message.input_sequence_number;
             }
 
@@ -116,11 +120,11 @@ export default class Server {
         // In a real app, state could be filtered to avoid leaking data
         // (e.g. position of invisible enemies).
 
-        const worldStateArray: WorldState[] = [];
-        const num_clients = this.clients.length;
-        for (var i = 0; i < num_clients; i++) {
+        const worldStateArray: WorldStateMessage[] = [];
+        const clientsCount = this.clients.length;
+        for (var i = 0; i < clientsCount; i++) {
             const entity = this.entities[i];
-            worldStateArray.push(new WorldState(
+            worldStateArray.push(new WorldStateMessage(
                 entity.entityId,
                 entity.x,
                 this.last_processed_input[i]
@@ -128,7 +132,7 @@ export default class Server {
         }
 
         // Broadcast the state to all the clients.
-        for (var i = 0; i < num_clients; i++) {
+        for (var i = 0; i < clientsCount; i++) {
             const client = this.clients[i];
             client.network.send(client.lag, worldStateArray);
         }

@@ -100,12 +100,16 @@ var updateNumberFromUI = (old_value: number, element_id: string) => {
 const keyHandler = (e: KeyboardEvent) => {
     e = e || window.event;
     if (e.key == 'ArrowRight') {
+        e.preventDefault()
         player1.key_right = (e.type == "keydown");
     } else if (e.key == 'ArrowLeft') {
+        e.preventDefault()
         player1.key_left = (e.type == "keydown");
     } else if (e.key == 'd') {
+        e.preventDefault()
         player2.key_right = (e.type == "keydown");
     } else if (e.key == 'a') {
+        e.preventDefault()
         player2.key_left = (e.type == "keydown");
     } else {
     }

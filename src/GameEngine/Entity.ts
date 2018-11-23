@@ -1,4 +1,4 @@
-import { InputContainer } from "./helper/helper";
+import { InputMessage, TimestampedPosition } from "./helper/helper";
 
 // =============================================================================
 //  An Entity in the world.
@@ -6,7 +6,7 @@ import { InputContainer } from "./helper/helper";
 export default class Entity {
     x = 0;
     speed = 2; // units/s
-    position_buffer: number[][] = [];
+    positionBuffer: TimestampedPosition[] = [];
     entityId: number
 
     constructor(entityId: number) {
@@ -14,7 +14,7 @@ export default class Entity {
     }
 
     // Apply user's input to this entity.
-    applyInput(input: InputContainer) {
+    applyInput(input: InputMessage) {
         this.x += input.press_time * this.speed;
     }
 }
