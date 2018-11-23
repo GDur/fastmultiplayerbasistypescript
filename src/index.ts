@@ -49,7 +49,7 @@ function element(id: string): HTMLElement {
 // =============================================================================
 
 // World update rate of the Server.
-const server_fps = 4;
+const serverFps = 4;
 
 
 // Update simulation parameters from UI.
@@ -94,21 +94,22 @@ var updateNumberFromUI = (old_value: number, element_id: string) => {
     input.value = new_value.toString();
     return new_value;
 }
-console.log("test")
+
+
 // When the player presses the arrow keys, set the corresponding flag in the client.
 const keyHandler = (e: KeyboardEvent) => {
     e = e || window.event;
-    if (e.keyCode == 39) {
+    if (e.key == 'ArrowRight') {
         player1.key_right = (e.type == "keydown");
-    } else if (e.keyCode == 37) {
+    } else if (e.key == 'ArrowLeft') {
         player1.key_left = (e.type == "keydown");
     } else if (e.key == 'd') {
         player2.key_right = (e.type == "keydown");
     } else if (e.key == 'a') {
         player2.key_left = (e.type == "keydown");
     } else {
-        console.log(e)
     }
+    console.log(e)
 };
 document.body.onkeydown = keyHandler;
 document.body.onkeyup = keyHandler;
@@ -118,23 +119,20 @@ document.body.onkeyup = keyHandler;
 var server = new Server(element("server_canvas"), element("server_status"), renderWorld);
 var player1 = new Client(element("player1_canvas"), element("player1_status"), server, renderWorld);
 var player2 = new Client(element("player2_canvas"), element("player2_status"), server, renderWorld);
-// var player3 = new Client(element("player2_canvas"), element("player2_status"), server, renderWorld);
 
 
 // // Connect the clients to the server.
 server.connect(player1);
 server.connect(player2);
-// server.connect(player3);
 
 
 // Read initial parameters from the UI.
 updateParameters();
 
-var highlightedItems = document.querySelectorAll("input");
+var inputElements = document.querySelectorAll("input");
 
-highlightedItems.forEach(function (userItem) {
-    userItem.onchange = function () {
-        console.log("sf")
+inputElements.forEach(function (inputElement) {
+    inputElement.onchange = function () {
         updateParameters();
     }
 });
