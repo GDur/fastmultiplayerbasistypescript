@@ -2,7 +2,7 @@ import Entity from './Entity'
 import LagNetwork from './LagNetwork'
 import Server from './Server'
 
-import { InputMessage, WorldStateMessage, TimestampedPosition } from "./helper/helper";
+import { InputMessage, WorldStateMessage, Command, TimestampedShareableData } from "./helper/helper";
 // =============================================================================
 //  The Client.
 // =============================================================================
@@ -15,8 +15,10 @@ export default class Client {
     entities: { [key: number]: Entity; } = {};
 
     // Input state.
-    key_left = false;
-    key_right = false;
+    keyLeft = false;
+    keyRight = false;
+    keyUp = false;
+    keyDown = false;
 
     // Simulated network connection.
     network = new LagNetwork();
@@ -27,19 +29,19 @@ export default class Client {
     entityId = -0;
 
     // Data needed for reconciliation.
-    client_side_prediction = false;
-    server_reconciliation = false;
-    input_sequence_number = 0;
-    pending_inputs: InputMessage[] = [];
+    isClientSidePredictionActive = false;
+    isServerReconciliationActive = false;
+
+    inputSequenceNumber = 0;
+    pendingInputs: InputMessage[] = [];
 
     lastTs = 0
 
     // Entity interpolation toggle.
-    entity_interpolation = true;
+    entityInterpolation = true;
 
 
     updateInterval: number;
-
     renderWorld: Function
 
     constructor(canvas: HTMLElement, statusElement: HTMLElement, server: Server, renderWorld: Function) {
@@ -85,7 +87,7 @@ export default class Client {
         this.processInputs();
 
         // Interpolate other entities.
-        if (this.entity_interpolation) {
+        if (this.entityInterpolation) {
             this.interpolateEntities();
         }
 
@@ -93,7 +95,7 @@ export default class Client {
         this.renderWorld(this.canvas, this.entities);
 
         // Show some info.
-        const info = `Non-acknowledged inputs: ${this.pending_inputs.length}`;
+        const info = `Non-acknowledged inputs: ${this.pendingInputs.length}`;
         this.statusHTMLElement.textContent = info;
     }
 
@@ -102,36 +104,46 @@ export default class Client {
     processInputs() {
 
         // Compute delta time since last update.
-        const now_ts = +new Date();
-        const last_ts = this.lastTs || now_ts;
-        const dt_sec = (now_ts - last_ts) / 1000.0;
-        this.lastTs = now_ts;
+        const nowTs = +new Date();
+        const lastTs = this.lastTs || nowTs;
+        const dtSec = (nowTs - lastTs) / 1000.0;
+        this.lastTs = nowTs;
 
-        // Package player's input.
-        let input = new InputMessage(-1, -1, -1)
+        // Gather players input data
+        var command
+        var pressedTime = dtSec;
+        var entityId = this.entityId;
 
-        if (this.key_right) {
-            input.press_time = dt_sec;
-        } else if (this.key_left) {
-            input.press_time = -dt_sec;
+
+        if (this.keyRight) {
+            command = Command.goRight
+        } else if (this.keyLeft) {
+            command = Command.goLeft
+        } else if (this.keyUp) {
+            command = Command.goUp
+        } else if (this.keyDown) {
+            command = Command.goDown
         } else {
             // Nothing interesting happened.
             return;
         }
+        var inputSequenceNumber = this.inputSequenceNumber++;
 
         // Send the input to the server.
-        input.input_sequence_number = this.input_sequence_number++;
-        input.entityId = this.entityId;
+        let input = new InputMessage(
+            entityId, pressedTime,
+            inputSequenceNumber, command)
+
 
         this.server.network.send(this.lag, input);
 
         // Do client-side prediction.
-        if (this.client_side_prediction) {
+        if (this.isClientSidePredictionActive) {
             this.entities[this.entityId].applyInput(input);
         }
 
         // Save this input for later reconciliation.
-        this.pending_inputs.push(input);
+        this.pendingInputs.push(input);
     }
 
     // Process all messages from the server, i.e. world updates.
@@ -159,19 +171,19 @@ export default class Client {
                 if (state.entityId == this.entityId) {
 
                     // Received the authoritative position of this client's entity.
-                    entity.x = state.positionX;
+                    entity.shareableData = state.shareableData;
 
-                    if (this.server_reconciliation) {
+                    if (this.isServerReconciliationActive) {
                         // Server Reconciliation. 
                         // Re-apply all the inputs not yet processed by
                         // the server.
                         let j = 0;
-                        while (j < this.pending_inputs.length) {
-                            const input = this.pending_inputs[j];
-                            if (input.input_sequence_number <= state.last_processed_input) {
+                        while (j < this.pendingInputs.length) {
+                            const input = this.pendingInputs[j];
+                            if (input.inputSequenceNumber <= state.lastProcessedInput) {
                                 // Already processed. Its effect is already taken into account into the world update
                                 // we just got, so we can drop it.
-                                this.pending_inputs.splice(j, 1);
+                                this.pendingInputs.splice(j, 1);
                             } else {
                                 // Not processed by the server yet. Re-apply it.
                                 entity.applyInput(input);
@@ -180,19 +192,22 @@ export default class Client {
                         }
                     } else {
                         // Reconciliation is disabled, so drop all the saved inputs.
-                        this.pending_inputs = [];
+                        this.pendingInputs = [];
                     }
                 } else {
 
                     // Received the position of an entity other than this client's.
-                    if (!this.entity_interpolation) {
+                    if (!this.entityInterpolation) {
 
                         // Entity interpolation is disabled - just accept the server's position.
-                        entity.x = state.positionX;
+                        entity.shareableData = state.shareableData;
                     } else {
+
                         // Add it to the position buffer.
                         const timestamp = +new Date();
-                        entity.positionBuffer.push(new TimestampedPosition(timestamp, state.positionX));
+                        entity.positionBuffer.push(new TimestampedShareableData(
+                            timestamp, state.shareableData
+                        ));
                     }
                 }
             }
@@ -216,10 +231,7 @@ export default class Client {
             const buffer = entity.positionBuffer;
 
             // Drop older positions.
-            while (
-                buffer.length >= 2
-                && buffer[1].timestamp <= renderTimestamp
-            ) {
+            while (buffer.length >= 2 && buffer[1].timestamp <= renderTimestamp) {
                 buffer.shift();
             }
 
@@ -227,15 +239,26 @@ export default class Client {
             if (buffer.length >= 2
                 && buffer[0].timestamp <= renderTimestamp
                 && renderTimestamp <= buffer[1].timestamp) {
-                const x0 = buffer[0].position;
-                const x1 = buffer[1].position;
-                const t0 = buffer[0].timestamp;
-                const t1 = buffer[1].timestamp;
 
-                const deltaMovementX = (x1 - x0)
-                
-                entity.x = x0 + deltaMovementX * (renderTimestamp - t0) / (t1 - t0);
+                entity.x = this.interpolate(
+                    buffer[0].shareableData.x,
+                    buffer[1].shareableData.x,
+                    buffer[0].timestamp,
+                    buffer[1].timestamp,
+                    renderTimestamp);
+
+                entity.y = this.interpolate(
+                    buffer[0].shareableData.y,
+                    buffer[1].shareableData.y,
+                    buffer[0].timestamp,
+                    buffer[1].timestamp,
+                    renderTimestamp);
             }
         }
+    }
+
+    private interpolate(p0: number, p1: number, t0: number, t1: number, renderTimestamp: number): number {
+        const deltaMovement = (p1 - p0);
+        return p0 + deltaMovement * (renderTimestamp - t0) / (t1 - t0);
     }
 }

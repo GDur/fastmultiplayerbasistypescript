@@ -19,12 +19,13 @@ var renderWorld = (canvas: HTMLCanvasElement, entities: { [key: number]: Entity;
 
         // Compute size and position.
         const radius = canvas.height * 0.9 / 2;
-        const x = (entity.x / 10.0) * canvas.width;
+        const x = entity.x;
+        const y = entity.y;
 
         // Draw the entity.
         const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
         ctx.beginPath();
-        ctx.arc(x, canvas.height / 2, radius, 0, 2 * Math.PI, false);
+        ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
         ctx.fillStyle = colours[entity.entityId];
         ctx.fill();
         ctx.lineWidth = 5;
@@ -49,7 +50,7 @@ function element(id: string): HTMLElement {
 // =============================================================================
 
 // World update rate of the Server.
-const serverFps = 4;
+const serverFps = 40;
 
 
 // Update simulation parameters from UI.
@@ -64,35 +65,35 @@ const updateParameters = () => {
 var updatePlayerParameters = (client: Client, prefix: string) => {
     client.lag = updateNumberFromUI(player1.lag, `${prefix}_lag`);
 
-    const cb_prediction = element(`${prefix}_prediction`) as HTMLInputElement;
-    const cb_reconciliation = element(`${prefix}_reconciliation`) as HTMLInputElement;
+    const cbPrediction = element(`${prefix}_prediction`) as HTMLInputElement;
+    const cbReconciliation = element(`${prefix}_reconciliation`) as HTMLInputElement;
 
     // Client Side Prediction disabled => disable Server Reconciliation.
-    if (client.client_side_prediction && !cb_prediction.checked) {
-        cb_reconciliation.checked = false;
+    if (client.isClientSidePredictionActive && !cbPrediction.checked) {
+        cbReconciliation.checked = false;
     }
 
     // Server Reconciliation enabled => enable Client Side Prediction.
-    if (!client.server_reconciliation && cb_reconciliation.checked) {
-        cb_prediction.checked = true;
+    if (!client.isServerReconciliationActive && cbReconciliation.checked) {
+        cbPrediction.checked = true;
     }
 
 
-    client.client_side_prediction = cb_prediction.checked;
-    client.server_reconciliation = cb_reconciliation.checked;
+    client.isClientSidePredictionActive = cbPrediction.checked;
+    client.isServerReconciliationActive = cbReconciliation.checked;
 
-    client.entity_interpolation = (element(`${prefix}_interpolation`) as HTMLInputElement).checked;
+    client.entityInterpolation = (element(`${prefix}_interpolation`) as HTMLInputElement).checked;
 }
 
 
-var updateNumberFromUI = (old_value: number, element_id: string) => {
-    const input = element(element_id) as HTMLInputElement;
-    let new_value = parseInt(input.value);
-    if (isNaN(new_value)) {
-        new_value = old_value;
+var updateNumberFromUI = (oldValue: number, elementId: string) => {
+    const input = element(elementId) as HTMLInputElement;
+    let newValue = parseInt(input.value);
+    if (isNaN(newValue)) {
+        newValue = oldValue;
     }
-    input.value = new_value.toString();
-    return new_value;
+    input.value = newValue.toString();
+    return newValue;
 }
 
 
@@ -101,19 +102,32 @@ const keyHandler = (e: KeyboardEvent) => {
     e = e || window.event;
     if (e.key == 'ArrowRight') {
         e.preventDefault()
-        player1.key_right = (e.type == "keydown");
+        player1.keyRight = (e.type == "keydown");
     } else if (e.key == 'ArrowLeft') {
         e.preventDefault()
-        player1.key_left = (e.type == "keydown");
-    } else if (e.key == 'd') {
+        player1.keyLeft = (e.type == "keydown");
+    } else if (e.key == 'ArrowUp') {
         e.preventDefault()
-        player2.key_right = (e.type == "keydown");
-    } else if (e.key == 'a') {
+        player1.keyUp = (e.type == "keydown");
+    } else if (e.key == 'ArrowDown') {
         e.preventDefault()
-        player2.key_left = (e.type == "keydown");
-    } else {
-    }
-    console.log(e)
+        player1.keyDown = (e.type == "keydown");
+    } else
+        if (e.key == 'd') {
+            e.preventDefault()
+            player2.keyRight = (e.type == "keydown");
+        } else if (e.key == 'a') {
+            e.preventDefault()
+            player2.keyLeft = (e.type == "keydown");
+        } else if (e.key == 'w') {
+            e.preventDefault()
+            player2.keyUp = (e.type == "keydown");
+        } else if (e.key == 's') {
+            e.preventDefault()
+            player2.keyDown = (e.type == "keydown");
+        } else {
+            console.log(e)
+        }
 };
 document.body.onkeydown = keyHandler;
 document.body.onkeyup = keyHandler;

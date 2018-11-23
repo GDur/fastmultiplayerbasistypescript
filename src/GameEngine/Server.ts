@@ -14,7 +14,7 @@ export default class Server {
     entities: Entity[] = [];
 
     // Last processed input for each client.
-    last_processed_input: number[] = [];
+    lastProcessedInput: number[] = [];
 
     // Simulated network connection.
     network = new LagNetwork();
@@ -50,8 +50,9 @@ export default class Server {
         // entity.entityId = client.entityId;
 
         // Set the initial state of the Entity (e.g. spawn point)
-        const spawn_points = [4, 6, 7];
-        entity.x = spawn_points[client.entityId];
+        const spawnPoints = [4, 6];
+        entity.x = spawnPoints[client.entityId];
+        entity.y = 5;
     }
 
     getUpdateRate() {
@@ -79,7 +80,7 @@ export default class Server {
     // Check whether this input seems to be valid (e.g. "make sense" according
     // to the physical rules of the World)
     validateInput(input: InputMessage) {
-        if (Math.abs(input.press_time) > 1 / 40) {
+        if (Math.abs(input.pressedTime) > 1 / 40) {
             return false;
         }
         return true;
@@ -101,7 +102,7 @@ export default class Server {
                 this.entities[id].applyInput(message);
 
                 // remember last input sequence number for client because?
-                this.last_processed_input[id] = message.input_sequence_number;
+                this.lastProcessedInput[id] = message.inputSequenceNumber;
             }
 
         }
@@ -109,7 +110,7 @@ export default class Server {
         // Show some info.
         let info = "Last acknowledged input: ";
         for (let i = 0; i < this.clients.length; ++i) {
-            info += `Player ${i}: #${this.last_processed_input[i] || 0}   `;
+            info += `Player ${i}: #${this.lastProcessedInput[i] || 0}   `;
         }
         this.status.textContent = info;
     }
@@ -126,8 +127,8 @@ export default class Server {
             const entity = this.entities[i];
             worldStateArray.push(new WorldStateMessage(
                 entity.entityId,
-                entity.x,
-                this.last_processed_input[i]
+                entity.shareableData,
+                this.lastProcessedInput[i]
             ));
         }
 
