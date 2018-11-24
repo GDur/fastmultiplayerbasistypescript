@@ -8,7 +8,9 @@ This version of the demo was created to make the code even more readable (and as
 
 As the original author said "[...] you may use this code in your own applications. Credit is appreciated although not required.".
 
-
 # Install
 1. yarn install
 2. yarn start
+   
+# Demovideo
+![](demo_recording.gif)
