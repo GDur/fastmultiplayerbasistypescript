@@ -13,33 +13,35 @@ export class Message {
 
 export class MessageContainer {
     recvTs: number
-    message: Message
+    message: string
 
-    constructor(recvTs: number, payload: Message) {
+    constructor(recvTs: number, payload: string) {
         this.recvTs = recvTs
         this.message = payload
     }
 }
+
 export enum Command {
     goUp,
     goDown,
     goLeft,
     goRight,
 }
+
 export class InputMessage extends Message {
-    command: Command
+    commands: Command[]
     entityId :number
     pressedTime  :number
     inputSequenceNumber :number
     constructor(entityId: number, 
         pressedTime: number, 
         inputSequenceNumber: number,
-        command: Command) {
+        commands: Command[]) {
         super()
         this.entityId = entityId
         this.pressedTime = pressedTime
         this.inputSequenceNumber = inputSequenceNumber
-        this.command = command
+        this.commands = commands
     }
 }
 

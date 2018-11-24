@@ -110,20 +110,24 @@ export default class Client {
         this.lastTs = nowTs;
 
         // Gather players input data
-        var command
+        var commands: Command[] = []
         var pressedTime = dtSec;
         var entityId = this.entityId;
 
 
         if (this.keyRight) {
-            command = Command.goRight
+            commands.push(Command.goRight)
         } else if (this.keyLeft) {
-            command = Command.goLeft
-        } else if (this.keyUp) {
-            command = Command.goUp
+            commands.push(Command.goLeft)
+        }
+
+        if (this.keyUp) {
+            commands.push(Command.goUp)
         } else if (this.keyDown) {
-            command = Command.goDown
-        } else {
+            commands.push(Command.goDown)
+        }
+
+        if (commands.length == 0) {
             // Nothing interesting happened.
             return;
         }
@@ -132,7 +136,8 @@ export default class Client {
         // Send the input to the server.
         let input = new InputMessage(
             entityId, pressedTime,
-            inputSequenceNumber, command)
+            inputSequenceNumber, commands
+        )
 
 
         this.server.network.send(this.lag, input);
@@ -181,7 +186,8 @@ export default class Client {
                         while (j < this.pendingInputs.length) {
                             const input = this.pendingInputs[j];
                             if (input.inputSequenceNumber <= state.lastProcessedInput) {
-                                // Already processed. Its effect is already taken into account into the world update
+                                // Already processed. Its effect is already 
+                                // taken into account into the world update
                                 // we just got, so we can drop it.
                                 this.pendingInputs.splice(j, 1);
                             } else {

@@ -49,8 +49,6 @@ function element(id: string): HTMLElement {
 //  Get everything up and running.
 // =============================================================================
 
-// World update rate of the Server.
-const serverFps = 40;
 
 
 // Update simulation parameters from UI.
@@ -106,28 +104,31 @@ const keyHandler = (e: KeyboardEvent) => {
     } else if (e.key == 'ArrowLeft') {
         e.preventDefault()
         player1.keyLeft = (e.type == "keydown");
-    } else if (e.key == 'ArrowUp') {
+    }
+    if (e.key == 'ArrowUp') {
         e.preventDefault()
         player1.keyUp = (e.type == "keydown");
     } else if (e.key == 'ArrowDown') {
         e.preventDefault()
         player1.keyDown = (e.type == "keydown");
-    } else
-        if (e.key == 'd') {
-            e.preventDefault()
-            player2.keyRight = (e.type == "keydown");
-        } else if (e.key == 'a') {
-            e.preventDefault()
-            player2.keyLeft = (e.type == "keydown");
-        } else if (e.key == 'w') {
-            e.preventDefault()
-            player2.keyUp = (e.type == "keydown");
-        } else if (e.key == 's') {
-            e.preventDefault()
-            player2.keyDown = (e.type == "keydown");
-        } else {
-            console.log(e)
-        }
+    }
+
+    if (e.key == 'd') {
+        e.preventDefault()
+        player2.keyRight = (e.type == "keydown");
+    } else if (e.key == 'a') {
+        e.preventDefault()
+        player2.keyLeft = (e.type == "keydown");
+    }
+    if (e.key == 'w') {
+        e.preventDefault()
+        player2.keyUp = (e.type == "keydown");
+    } else if (e.key == 's') {
+        e.preventDefault()
+        player2.keyDown = (e.type == "keydown");
+    } 
+    
+    
 };
 document.body.onkeydown = keyHandler;
 document.body.onkeyup = keyHandler;

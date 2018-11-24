@@ -12,7 +12,7 @@ export default class LagNetwork {
     // "Send" a message. Store each message with the timestamp when it should be
     // received, to simulate lag.
     send(lagMs: number, payload: Message) {
-        this.messages.push(new MessageContainer(+new Date() + lagMs, payload));
+        this.messages.push(new MessageContainer(+new Date() + lagMs, JSON.stringify(payload)));
     }
 
     // Returns a "received" message, or undefined if there are no messages available
@@ -20,10 +20,10 @@ export default class LagNetwork {
     receive(): Message | null {
         const now = +new Date();
         for (let i = 0; i < this.messages.length; i++) {
-            const message = this.messages[i];
-            if (message.recvTs <= now) {
+            const messageContainer = this.messages[i];
+            if (messageContainer.recvTs <= now) {
                 this.messages.splice(i, 1);
-                return message.message;
+                return JSON.parse(messageContainer.message);
             }
         }
         return null

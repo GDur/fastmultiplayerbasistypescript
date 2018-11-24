@@ -4,7 +4,7 @@ import { InputMessage, TimestampedShareableData, Command } from "./helper/helper
 //  An Entity in the world.
 // =============================================================================
 export default class Entity {
-    
+
     shareableData = {
         x: 0,
         y: 0
@@ -26,7 +26,7 @@ export default class Entity {
         this.shareableData.y = y
     }
 
-    speed = 22; // units/s
+    speed = 50; // units/s
     positionBuffer: TimestampedShareableData[] = [];
     entityId: number
 
@@ -36,16 +36,16 @@ export default class Entity {
 
     // Apply user's input to this entity.
     applyInput(input: InputMessage) {
-        if (input.command == Command.goRight)
+        if (input.commands.indexOf(Command.goRight) >= 0)
             this.x += input.pressedTime * this.speed;
 
-        if (input.command == Command.goLeft)
+        if (input.commands.indexOf(Command.goLeft) >= 0)
             this.x += input.pressedTime * -this.speed;
 
-        if (input.command == Command.goUp)
+        if (input.commands.indexOf(Command.goUp) >= 0)
             this.y += input.pressedTime * -this.speed;
 
-        if (input.command == Command.goDown)
+        if (input.commands.indexOf(Command.goDown) >= 0)
             this.y += input.pressedTime * this.speed;
     }
 }
