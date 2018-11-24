@@ -32,7 +32,7 @@ export default class Server {
         this.canvas = canvas as HTMLCanvasElement;
         this.status = status;
         this.updateInterval = 0
-        
+
         // Default updte rate.
         this.setUpdateRate(20);
     }
@@ -50,9 +50,10 @@ export default class Server {
         // entity.entityId = client.entityId;
 
         // Set the initial state of the Entity (e.g. spawn point)
-        const spawnPoints = [4, 6];
-        entity.x = spawnPoints[client.entityId];
-        entity.y = 5;
+        const spawnPointsX = [920 / 3 * 1, 920 / 3 * 2];
+        const spawnPointY = 75 / 2;
+        entity.x = spawnPointsX[client.entityId];
+        entity.y = spawnPointY;
     }
 
     getUpdateRate() {

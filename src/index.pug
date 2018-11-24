@@ -8,6 +8,7 @@ head
   header
     h1.title Fast-Paced Multiplayer: Sample Code and Live Demo
   style.
+  a(href='http://www.gabrielgambetta.com/client-side-prediction-live-demo.html') original demo can be found here
   p
     | This is a sample implementation of a client-server architecture demonstrating the main concepts
     | explained in
@@ -20,10 +21,10 @@ head
   p
     | Although it&rsquo;s not production-quality code, you may use this code in your own applications. Credit is
     | appreciated although not required.
-  div(style='border: 5px solid blue; padding: 15px;')
+  div(style='border: 5px solid #2196F3; padding: 15px;')
     p
       b Player 1 view
-      |  - move with LEFT and RIGHT arrow keys
+      |  - move with W, A, S and D keys
       br
       |                 Lag = 
       input#player1_lag(type='text' size='5' value='250')
@@ -37,7 +38,7 @@ head
     canvas#player1_canvas(width='920' height='75')
     #player1_status(style='font-family:courier;') Non-acknowledged inputs: 0
   div(style='height: 1em;')
-  div(style='border: 2px solid grey; padding: 15px;')
+  div(style='border: 5px solid darkgrey; padding: 15px;')
     p
       b Server view
       |  &middot; Update 
@@ -48,10 +49,10 @@ head
       | Last acknowledged input: Player 0: #1566 Player 1:
       | #132
   div(style='height: 1em;')
-  div(style='border: 5px solid red; padding: 15px;')
+  div(style='border: 5px solid #F44336; padding: 15px;')
     p
       b Player 2 view
-      |  - move with A and D keys
+      |  - move with UP, DOWN, LEFT and RIGHT arrow keys 
       br
       |                 Lag = 
       input#player2_lag(type='text' size='5' value='150')

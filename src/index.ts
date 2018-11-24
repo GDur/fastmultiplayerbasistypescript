@@ -12,13 +12,14 @@ var renderWorld = (canvas: HTMLCanvasElement, entities: { [key: number]: Entity;
 
     canvas.width = canvas.width;
 
-    const colours = ["blue", "red", "yellow"];
+    // red, blue, green
+    const colours = ['#2196F3', '#F44336', '#4CAF50'];
 
     for (const i in entities) {
         const entity = entities[i];
 
         // Compute size and position.
-        const radius = canvas.height * 0.9 / 2;
+        const radius = 20;
         const x = entity.x;
         const y = entity.y;
 
@@ -28,9 +29,6 @@ var renderWorld = (canvas: HTMLCanvasElement, entities: { [key: number]: Entity;
         ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
         ctx.fillStyle = colours[entity.entityId];
         ctx.fill();
-        ctx.lineWidth = 5;
-        ctx.strokeStyle = `dark${colours[entity.entityId]}`;
-        ctx.stroke();
     }
 }
 
@@ -98,37 +96,39 @@ var updateNumberFromUI = (oldValue: number, elementId: string) => {
 // When the player presses the arrow keys, set the corresponding flag in the client.
 const keyHandler = (e: KeyboardEvent) => {
     e = e || window.event;
-    if (e.key == 'ArrowRight') {
+
+    if (e.key == 'd') {
         e.preventDefault()
         player1.keyRight = (e.type == "keydown");
-    } else if (e.key == 'ArrowLeft') {
+    } else if (e.key == 'a') {
         e.preventDefault()
         player1.keyLeft = (e.type == "keydown");
     }
-    if (e.key == 'ArrowUp') {
+    if (e.key == 'w') {
         e.preventDefault()
         player1.keyUp = (e.type == "keydown");
-    } else if (e.key == 'ArrowDown') {
+    } else if (e.key == 's') {
         e.preventDefault()
         player1.keyDown = (e.type == "keydown");
     }
 
-    if (e.key == 'd') {
+    if (e.key == 'ArrowRight') {
         e.preventDefault()
         player2.keyRight = (e.type == "keydown");
-    } else if (e.key == 'a') {
+    } else if (e.key == 'ArrowLeft') {
         e.preventDefault()
         player2.keyLeft = (e.type == "keydown");
     }
-    if (e.key == 'w') {
+    if (e.key == 'ArrowUp') {
         e.preventDefault()
         player2.keyUp = (e.type == "keydown");
-    } else if (e.key == 's') {
+    } else if (e.key == 'ArrowDown') {
         e.preventDefault()
         player2.keyDown = (e.type == "keydown");
-    } 
-    
-    
+    }
+
+
+
 };
 document.body.onkeydown = keyHandler;
 document.body.onkeyup = keyHandler;
