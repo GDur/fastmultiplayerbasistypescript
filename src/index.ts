@@ -149,6 +149,7 @@ setTimeout(() => {
 const updateParameters = () => {
     updatePlayerParameters(player1, "player1");
     updatePlayerParameters(player2, "player2");
+    server.setMaxPressedTimeForValidation(updateNumberFromUI(server.maxPressedTimeForValidation, "server_max_pressed_time"));
     server.setUpdateRate(updateNumberFromUI(server.updateRate, "server_fps"));
     return true;
 };
@@ -180,7 +181,7 @@ var updatePlayerParameters = (client: Client, prefix: string) => {
 
 var updateNumberFromUI = (oldValue: number, elementId: string) => {
     const input = getHTMLElement(elementId) as HTMLInputElement;
-    let newValue = parseInt(input.value);
+    let newValue = parseFloat(input.value);
     if (isNaN(newValue)) {
         newValue = oldValue;
     }

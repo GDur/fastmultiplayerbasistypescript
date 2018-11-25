@@ -22,6 +22,7 @@ export default class Server {
     network = new LagNetwork();
 
     updateRate = 0
+    maxPressedTimeForValidation = 1 / 10
 
     pixiApp: PIXI.Application;
     status: HTMLElement;
@@ -54,7 +55,10 @@ export default class Server {
         // entity.entityId = client.entityId;
 
         // Set the initial state of the Entity (e.g. spawn point)
-        const spawnPointsX = [920 / 3 * 1, 920 / 3 * 2];
+        const spawnPointsX = [
+            920 / 3 * 1,
+            920 / 3 * 2
+        ];
         const spawnPointY = 75 / 2;
         entity.x = spawnPointsX[client.entityId];
         entity.y = spawnPointY;
@@ -64,7 +68,10 @@ export default class Server {
     getUpdateRate() {
         return this.updateRate;
     }
-
+    setMaxPressedTimeForValidation(maxPressedTimeForValidation: number) {
+        // 1 / 10
+        this.maxPressedTimeForValidation = maxPressedTimeForValidation;
+    }
     setUpdateRate(hz: number) {
         var self = this
 
@@ -85,7 +92,8 @@ export default class Server {
     // Check whether this input seems to be valid (e.g. "make sense" according
     // to the physical rules of the World)
     validateInput(input: InputMessage) {
-        if (Math.abs(input.pressedTime) > 1 / 40) {
+        if (Math.abs(input.pressedTime * 1000) > this.maxPressedTimeForValidation) {
+            console.log('The maximum accepted pressed key time was', input.pressedTime * 1000, 'ms, and therefore was discarded by the server. Try to increase the "maximum accepted press time in the server view."');
             return false;
         }
         return true;
