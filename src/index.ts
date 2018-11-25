@@ -89,17 +89,17 @@ const keyHandler = (e: KeyboardEvent) => {
         player1.keyDown = (e.type == "keydown");
     }
 
-    if (e.key == 'ArrowRight') {
+    if (e.key == 'ArrowRight' || e.key == 'Right') {
         e.preventDefault()
         player2.keyRight = (e.type == "keydown");
-    } else if (e.key == 'ArrowLeft') {
+    } else if (e.key == 'ArrowLeft' || e.key == 'Left') {
         e.preventDefault()
         player2.keyLeft = (e.type == "keydown");
     }
-    if (e.key == 'ArrowUp') {
+    if (e.key == 'ArrowUp' || e.key == 'Up') {
         e.preventDefault()
         player2.keyUp = (e.type == "keydown");
-    } else if (e.key == 'ArrowDown') {
+    } else if (e.key == 'ArrowDown' || e.key == 'Down') {
         e.preventDefault()
         player2.keyDown = (e.type == "keydown");
     }
