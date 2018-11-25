@@ -1,10 +1,8 @@
 import Server from './GameEngine/Server'
 import Entity from "./GameEngine/Entity"
 import Client from "./GameEngine/Client"
+import * as PIXI from 'pixi.js'
 
-const red = '#2196F3';
-const blue = '#F44336';
-const green = '#4CAF50';
 
 // =============================================================================
 //  Helpers.
@@ -22,35 +20,55 @@ function getHTMLElement(id: string): HTMLElement {
 
 
 // Render all the entities in the given canvas.
-var renderWorld = (canvas: HTMLCanvasElement, entities: { [key: number]: Entity; }) => {
-    // Clear the canvas.
+var initializeWordRendering = (pixiApp: PIXI.Application, entities: { [key: number]: Entity; }) => {
 
-    const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+    // prepare the rendering    
+    const red = 0x2196F3;
+    const blue = 0xF44336;
+    const green = 0x4CAF50;
     const colours = [red, blue, green];
 
+
+
+    // reset view stage
+    var entityGraphics: PIXI.Graphics[] = []
+    for (var i = pixiApp.stage.children.length - 1; i >= 0; i--) {
+        pixiApp.stage.removeChild(pixiApp.stage.children[i]);
+    }
+
+    // for each entity create a graphics and save it in the entityGraphics array
     for (const i in entities) {
-        const entity = entities[i];
+        var entity = entities[i]
+
+        var entityGraphic = new PIXI.Graphics();
 
         // Compute size and position.
         const radius = 20;
-        const x = entity.x;
-        const y = entity.y;
 
-        // Draw the entity.
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
-        ctx.fillStyle = colours[entity.entityId];
-        ctx.fill();
+        // draw a circle, set the lineStyle to zero so the circle doesn't have an outline
+        entityGraphic.lineStyle(0);
+        entityGraphic.beginFill(colours[entity.entityId], 1);
+        entityGraphic.drawCircle(0, 0, radius);
+        entityGraphic.endFill();
+
+        entityGraphics.push(entityGraphic)
+        pixiApp.stage.addChild(entityGraphic);
     }
+
+    // update the entity representations using the entityGraphics
+    // this is the drawloop 
+    pixiApp.ticker.add(function () {
+        for (const i in entityGraphics) {
+            const entity = entities[i];
+            entityGraphics[i].x = entity.x
+            entityGraphics[i].y = entity.y
+        }
+    });
 }
 
 // =============================================================================
 //  Get everything up and running.
 // =============================================================================
-
-
 
 // When the player presses the arrow keys, set the corresponding flag in the client.
 const keyHandler = (e: KeyboardEvent) => {
@@ -85,23 +103,43 @@ const keyHandler = (e: KeyboardEvent) => {
         e.preventDefault()
         player2.keyDown = (e.type == "keydown");
     }
-
-
-
 };
 document.body.onkeydown = keyHandler;
 document.body.onkeyup = keyHandler;
 
+// remove all old canvases (important because of parcels hotreload)
+document.querySelectorAll('canvas').forEach((aCanvas) => {
+    aCanvas.remove()
+})
+
+
+// add new canvases
+const serverPixiApp = new PIXI.Application(920, 75, { backgroundColor: 0xf3f3f3, antialias: true });
+getHTMLElement("server_view_container").appendChild(serverPixiApp.view)
+
+const player1PixiApp = new PIXI.Application(920, 75, { backgroundColor: 0xf3f3f3, antialias: true });
+getHTMLElement("player1_view_container").appendChild(player1PixiApp.view)
+
+const player2PixiApp = new PIXI.Application(920, 75, { backgroundColor: 0xf3f3f3, antialias: true });
+getHTMLElement("player2_view_container").appendChild(player2PixiApp.view)
+
 
 // // Setup a server, the player's client, and another player.
-var server = new Server(getHTMLElement("server_canvas"), getHTMLElement("server_status"), renderWorld);
-var player1 = new Client(getHTMLElement("player1_canvas"), getHTMLElement("player1_status"), server, renderWorld);
-var player2 = new Client(getHTMLElement("player2_canvas"), getHTMLElement("player2_status"), server, renderWorld);
+var server = new Server(serverPixiApp, getHTMLElement("server_status"), initializeWordRendering);
+var player1 = new Client(player1PixiApp, getHTMLElement("player1_status"), server, initializeWordRendering);
+var player2 = new Client(player2PixiApp, getHTMLElement("player2_status"), server, initializeWordRendering);
 
 
-// // Connect the clients to the server.
-server.connect(player1);
-server.connect(player2);
+
+// Connect the clients to the server.
+// simulate delay in connection
+setTimeout(() => {
+    server.connect(player1);
+}, 500);
+
+setTimeout(() => {
+    server.connect(player2);
+}, 1500);
 
 
 

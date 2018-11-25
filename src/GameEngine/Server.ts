@@ -8,7 +8,9 @@ import { InputMessage, WorldStateMessage } from "./helper/helper";
 // =============================================================================
 //  The Server.
 // =============================================================================
+
 export default class Server {
+
     // Connected clients and their entities.
     clients: Client[] = [];
     entities: Entity[] = [];
@@ -19,22 +21,24 @@ export default class Server {
     // Simulated network connection.
     network = new LagNetwork();
 
-    canvas: HTMLCanvasElement;
-    status: HTMLElement;
     updateRate = 0
-    updateInterval: number
-    renderWorld: Function
 
-    constructor(canvas: HTMLElement, status: HTMLElement, renderWorld: Function) {
-        this.renderWorld = renderWorld
+    pixiApp: PIXI.Application;
+    status: HTMLElement;
+    updateIntervalId: number
+    initializeWordRendering: Function
+
+    constructor(pixiApp: PIXI.Application, status: HTMLElement, initializeWordRendering: Function) {
+        this.initializeWordRendering = initializeWordRendering
 
         // UI.
-        this.canvas = canvas as HTMLCanvasElement;
-        this.status = status;
-        this.updateInterval = 0
+        this.pixiApp = pixiApp
+        this.status = status
+        this.updateIntervalId = 0
 
         // Default updte rate.
-        this.setUpdateRate(20);
+        this.setUpdateRate(20)
+
     }
 
     connect(client: Client) {
@@ -54,6 +58,7 @@ export default class Server {
         const spawnPointY = 75 / 2;
         entity.x = spawnPointsX[client.entityId];
         entity.y = spawnPointY;
+        this.initializeWordRendering(this.pixiApp, this.entities)
     }
 
     getUpdateRate() {
@@ -65,9 +70,9 @@ export default class Server {
 
         this.updateRate = hz;
 
-        clearInterval(this.updateInterval);
+        clearInterval(this.updateIntervalId);
 
-        this.updateInterval = window.setInterval(() => {
+        this.updateIntervalId = window.setInterval(() => {
             self.update();
         }, 1000 / this.updateRate);
     }
@@ -75,7 +80,6 @@ export default class Server {
     update() {
         this.processInputs();
         this.sendWorldState();
-        this.renderWorld(this.canvas, this.entities);
     }
 
     // Check whether this input seems to be valid (e.g. "make sense" according
@@ -90,6 +94,7 @@ export default class Server {
     processInputs() {
         // Process all pending messages from clients.
         while (true) {
+
             const message = this.network.receive() as InputMessage;
             if (!message) {
                 break;

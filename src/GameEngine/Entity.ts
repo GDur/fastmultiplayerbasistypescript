@@ -4,7 +4,6 @@ import { InputMessage, TimestampedShareableData, Command } from "./helper/helper
 //  An Entity in the world.
 // =============================================================================
 export default class Entity {
-
     shareableData = {
         x: 0,
         y: 0
@@ -32,6 +31,10 @@ export default class Entity {
 
     constructor(entityId: number) {
         this.entityId = entityId
+    }
+
+    spawned() {
+
     }
 
     // Apply user's input to this entity.

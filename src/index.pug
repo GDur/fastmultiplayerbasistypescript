@@ -35,7 +35,7 @@ head
       |                 Reconciliation &middot; 
       input#player1_interpolation(type='checkbox')
       | Interpolation
-    canvas#player1_canvas(width='920' height='75')
+    div#player1_view_container
     #player1_status(style='font-family:courier;') Non-acknowledged inputs: 0
   div(style='height: 1em;')
   div(style='border: 5px solid darkgrey; padding: 15px;')
@@ -44,7 +44,7 @@ head
       |  &middot; Update 
       input#server_fps(type='text' size='5' value='3')
       |  times per second
-    canvas#server_canvas(width='920' height='75')
+    div#server_view_container
     #server_status(style='font-family:courier;')
       | Last acknowledged input: Player 0: #1566 Player 1:
       | #132
@@ -63,6 +63,6 @@ head
       |                 Reconciliation &middot; 
       input#player2_interpolation(type='checkbox')
       | Interpolation
-    canvas#player2_canvas(width='920' height='75')
+    div#player2_view_container
     #player2_status(style='font-family:courier;') Non-acknowledged inputs: 0
 script(src='./index.ts')

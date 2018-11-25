@@ -7,7 +7,7 @@ import { InputMessage, WorldStateMessage, Command, TimestampedShareableData } fr
 //  The Client.
 // =============================================================================
 export default class Client {
-    canvas: HTMLCanvasElement;
+    pixiApp: PIXI.Application;
     statusHTMLElement: HTMLElement;
 
 
@@ -41,21 +41,22 @@ export default class Client {
     entityInterpolation = true;
 
 
-    updateInterval: number;
-    renderWorld: Function
+    updateIntervalId: number;
+    initializeWordRendering: Function
 
-    constructor(canvas: HTMLElement, statusElement: HTMLElement, server: Server, renderWorld: Function) {
-        this.renderWorld = renderWorld
+    constructor(pixiApp: PIXI.Application, statusElement: HTMLElement, server: Server, initializeWordRendering: Function) {
+        this.initializeWordRendering = initializeWordRendering
         this.server = server
 
         // UI.
-        this.canvas = canvas as HTMLCanvasElement;
-        this.statusHTMLElement = statusElement;
+        this.pixiApp = pixiApp
+        this.statusHTMLElement = statusElement
 
 
         // Update rate.
-        this.updateInterval = 0
-        this.setUpdateRate(50);
+        this.updateIntervalId = 0
+        this.setUpdateRate(50)
+
     }
 
     setEntityId(id: number) {
@@ -65,11 +66,11 @@ export default class Client {
     setUpdateRate(hz: number) {
         const self = this
 
-        clearInterval(this.updateInterval);
+        clearInterval(this.updateIntervalId);
 
         this.lastTs = +new Date();
 
-        this.updateInterval = window.setInterval(() => {
+        this.updateIntervalId = window.setInterval(() => {
             self.update();
         }, 1000 / hz);
     }
@@ -91,8 +92,8 @@ export default class Client {
             this.interpolateEntities();
         }
 
-        // Render the World.
-        this.renderWorld(this.canvas, this.entities);
+
+
 
         // Show some info.
         const info = `Non-acknowledged inputs: ${this.pendingInputs.length}`;
@@ -168,6 +169,8 @@ export default class Client {
                     var entity = new Entity(state.entityId);
                     // entity.entityId = state.entityId;
                     this.entities[state.entityId] = entity;
+                    // // Render the World.
+                    this.initializeWordRendering(this.pixiApp, this.entities)
                 }
 
                 var entity = this.entities[state.entityId];
